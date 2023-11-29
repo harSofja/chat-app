@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "71949764472",
+    "project_id": "cool-chat-application",
+    "storage_bucket": "cool-chat-application.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:71949764472:android:d4bcce7d9ee60f23782a8d",
+        "android_client_info": {
+          "package_name": "com.sofka.chat_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_oQLogt9FmrGUZ4NA4Dv1y15i95zFpu4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
