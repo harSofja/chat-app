@@ -43,11 +43,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.surface,
           title: Text(
-        'Δημιουργία λογαριασμού',
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            fontSize: 20, color: Theme.of(context).colorScheme.background),
-      )),
+            'Δημιουργία λογαριασμού',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                fontSize: 20, color: Theme.of(context).colorScheme.background),
+          )),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(

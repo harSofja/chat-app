@@ -6,7 +6,10 @@ class ChatWindow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Chat')),
+      appBar: AppBar(
+        title: Text('Chat'),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+      ),
       body: Column(
         children: <Widget>[
           Expanded(

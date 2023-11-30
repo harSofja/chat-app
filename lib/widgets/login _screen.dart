@@ -1,4 +1,5 @@
 import 'package:chat_app/widgets/sign_up_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,11 +19,12 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.surface,
           title: Text(
-        'Σύνδεση',
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            fontSize: 20, color: Theme.of(context).colorScheme.background),
-      )),
+            'Σύνδεση',
+            style:
+                Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 20),
+          )),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -42,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   labelStyle: Theme.of(context).textTheme.bodyLarge,
                   prefixIcon: Icon(
                     Icons.email,
-                    color: Theme.of(context).colorScheme.primary,
+                    color: Theme.of(context).colorScheme.secondary,
                   ), // Email icon
                   filled: true,
                   fillColor: Theme.of(context).colorScheme.background,
@@ -68,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   labelStyle: Theme.of(context).textTheme.bodyLarge,
                   prefixIcon: Icon(
                     Icons.lock,
-                    color: Theme.of(context).colorScheme.primary,
+                    color: Theme.of(context).colorScheme.secondary,
                   ),
                   filled: true,
                   fillColor: Theme.of(context).colorScheme.background,
@@ -89,28 +91,50 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 height: 60,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      // If the form is valid, display a Snackbar.
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                            content: Text(
-                          'Επεξεργασία...',
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        )),
+                            backgroundColor:
+                                Theme.of(context).colorScheme.surface,
+                            content: Text('Επεξεργασία...',
+                                style: Theme.of(context).textTheme.bodyLarge)),
                       );
-                      // Implement login logic
+
+                      try {
+                        await FirebaseAuth.instance.signInWithEmailAndPassword(
+                          email: emailController.text,
+                          password: passwordController.text,
+                        );
+
+                        if (context.mounted) {
+                          Navigator.pushReplacementNamed(context, '/chatList');
+                        }
+                      } on FirebaseAuthException catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.surface,
+                                content: Text(
+                                  e.message ??
+                                      'Το email ή ο κωδικός πρόσβασης είναι λάθος.',
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                )),
+                          );
+                        }
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.surface,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25.0),
                     ),
                   ),
                   child: Text(
                     'Σύνδεση',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.background),
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ),
               ),
