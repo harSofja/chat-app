@@ -9,7 +9,7 @@ const ColorScheme colorScheme = ColorScheme(
   primary: primaryColor,
   secondary: secondaryColor,
   secondaryContainer: secondaryColor, // Adjust if you have a variant
-  surface: secondaryColor,
+  surface: lightColor,
   background: backgroundColor,
   error: Colors.red, // Define an error color if needed
   onPrimary: lightColor, // Text color on primary color

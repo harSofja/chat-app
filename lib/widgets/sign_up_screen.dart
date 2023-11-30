@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -13,6 +14,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
+
+  Future<void> _registerUser() async {
+    try {
+      // Create user with email and password
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+      if (context.mounted) {
+        Navigator.pushReplacementNamed(context, '/chatList');
+      }
+    } on FirebaseAuthException catch (e) {
+      // Handle errors (e.g., weak password, email already in use)
+      print(e.message);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              content: Text(e.message ?? 'An error occurred')),
+        );
+      } // For debugging purposes
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +105,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty || value.length < 6) {
-                    return 'Το σύνθημα πρέπει να αποτελείτε τουλάχιστον από 6 χαρακτήρες';
+                    return 'Πληκτρολογείστε πάνω από 6 χαρακτήρες';
                   }
                   return null;
                 },
@@ -93,7 +117,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   labelText: 'Επιβεβαίωση συνθηματικού',
                   labelStyle: Theme.of(context).textTheme.bodyLarge,
                   prefixIcon: Icon(
-                    Icons.lock,
+                    Icons.check_box,
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   filled: true,
@@ -117,7 +141,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      // Implement sign-up logic
+                      _registerUser();
                     }
                   },
                   style: ElevatedButton.styleFrom(
