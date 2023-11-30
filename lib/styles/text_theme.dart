@@ -4,13 +4,13 @@ TextTheme customTextTheme() {
   return const TextTheme(
     displayLarge: TextStyle(
       fontFamily: 'Roboto', // Replace with your font's name
-      fontSize: 24.0,
+      fontSize: 18.0,
       fontWeight: FontWeight.bold,
       color: Colors.black,
     ),
     displayMedium: TextStyle(
       fontFamily: 'Roboto',
-      fontSize: 20.0,
+      fontSize: 15.0,
       fontWeight: FontWeight.w500,
       color: Colors.black,
     ),
