@@ -1,3 +1,4 @@
+import 'package:chat_app/widgets/components/drawer_screens/profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -49,7 +50,9 @@ class ChatDrawer extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             onTap: () {
-              // Handle the tap
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
             },
           ),
           ListTile(

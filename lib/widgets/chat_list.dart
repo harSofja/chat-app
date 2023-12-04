@@ -56,20 +56,19 @@ class ChatListScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               var chatData =
                   snapshot.data!.docs[index].data() as Map<String, dynamic>;
-              // Use fields from your Firestore documents. Adjust the field names as per your database structure
+              String chatId = snapshot.data!.docs[index].id;
+              Timestamp timestamp = chatData[
+                  'lastMessageTimestamp']; // Use fields from your Firestore documents. Adjust the field names as per your database structure
               return Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: ChatListItem(
-                  chatPartnerName: chatData['partnerName'] ??
-                      'Άγνωστος', // Adjust field names based on your Firestore
-                  lastMessage: chatData['lastMessage'] ?? 'Δεν υπάρχει μήνυμα',
+                  chatPartnerName: chatData['partnerName'] ?? 'Unknown',
+                  lastMessage: chatData['lastMessage'] ?? 'No message',
                   imageUrl:
                       chatData['imageUrl'] ?? 'https://via.placeholder.com/150',
-                  timestamp: (chatData['lastMessageTimestamp'] as Timestamp)
-                      .toDate()
-                      .toString(), // Format timestamp as needed
-                  unreadMessages:
-                      0, // Implement logic to count unread messages if needed
+                  timestamp: timestamp, // Pass the Timestamp directly
+                  unreadMessages: 0,
+                  chatId: chatId,
                 ),
               );
             },

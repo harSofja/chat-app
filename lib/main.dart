@@ -1,7 +1,7 @@
 import 'package:chat_app/firebase_options.dart';
 import 'package:chat_app/styles/color_scheme.dart';
 import 'package:chat_app/widgets/chat_list.dart';
-import 'package:chat_app/widgets/chat_window.dart';
+import 'package:chat_app/widgets/components/drawer_screens/profile_screen.dart';
 import 'package:chat_app/widgets/login%20_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -40,7 +40,7 @@ class ChatApp extends StatelessWidget {
       ),
       routes: {
         '/chatList': (context) => const ChatListScreen(),
-        '/chatWindow': (context) => const ChatWindow(),
+        '/login': (context) => const LoginScreen(),
       },
     );
   }
