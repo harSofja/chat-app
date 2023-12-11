@@ -40,6 +40,8 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _checkFirstLaunch() async {
     final prefs = await SharedPreferences.getInstance();
+    // Reset the flag for testing purposes
+    await prefs.setBool('first_launch', true);
     _isFirstLaunch = prefs.getBool('first_launch') ?? true;
 
     if (_isFirstLaunch) {
