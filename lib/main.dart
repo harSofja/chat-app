@@ -1,8 +1,7 @@
 import 'package:chat_app/firebase_options.dart';
 import 'package:chat_app/styles/color_scheme.dart';
-import 'package:chat_app/widgets/chat_list.dart';
-import 'package:chat_app/widgets/components/drawer_screens/profile_screen.dart';
-import 'package:chat_app/widgets/login%20_screen.dart';
+import 'package:chat_app/widgets/screens/chat_list_screen.dart';
+import 'package:chat_app/widgets/screens/login%20_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';

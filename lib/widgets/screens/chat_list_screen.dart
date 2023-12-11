@@ -10,26 +10,11 @@ class ChatListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        iconTheme: IconThemeData(color: Theme.of(context).iconTheme.color),
         title: Text(
           'Chats',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 20),
         ),
-        actions: <Widget>[
-          GestureDetector(
-            onTap: () {
-              Scaffold.of(context).openEndDrawer(); // Open the drawer
-            },
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: CircleAvatar(
-                // Placeholder for user profile image
-                backgroundImage:
-                    NetworkImage('https://via.placeholder.com/150'),
-                // Add more styling if needed
-              ),
-            ),
-          ),
-        ],
         backgroundColor: Theme.of(context).colorScheme.surface,
       ),
       endDrawer: const ChatDrawer(),
@@ -38,17 +23,17 @@ class ChatListScreen extends StatelessWidget {
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             print("Waiting for data...");
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
             print("Error fetching data: ${snapshot.error}");
-            return Center(child: Text('Something went wrong'));
+            return const Center(child: Text('Something went wrong'));
           }
 
           if (!snapshot.hasData) {
             print("No data available");
-            return Center(child: Text('No chats found'));
+            return const Center(child: Text('No chats found'));
           }
 
           return ListView.builder(

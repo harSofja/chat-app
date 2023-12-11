@@ -1,4 +1,4 @@
-import 'package:chat_app/widgets/sign_up_screen.dart';
+import 'package:chat_app/widgets/screens/sign_up_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -13,6 +13,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool rememberMe = false;
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
       resizeToAvoidBottomInset: true,
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
+          iconTheme: IconThemeData(color: Theme.of(context).iconTheme.color),
           backgroundColor: Theme.of(context).colorScheme.surface,
           title: Text(
             'Σύνδεση',
@@ -88,6 +90,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               ),
               const SizedBox(height: 20),
+              CheckboxListTile(
+                title: Text('Να με θυμάσαι',
+                    style: Theme.of(context).textTheme.bodySmall),
+                value: rememberMe,
+                onChanged: (bool? value) {
+                  setState(() {
+                    rememberMe = value!;
+                  });
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
               SizedBox(
                 width: double.infinity,
                 height: 60,
@@ -151,7 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   'Δεν έχετε λογαριασμό; Αποκτήστε έναν πατώντας εδώ!',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
-              )
+              ),
             ],
           ),
         ),
