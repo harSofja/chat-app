@@ -16,6 +16,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool rememberMe = false;
+  bool _isPasswordVisible = false;
+
   final storage = const FlutterSecureStorage();
 
   Future<void> saveCredentials(String email, String password) async {
@@ -33,6 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     _checkSavedCredentials();
+    _autoLogin();
   }
 
   void _checkSavedCredentials() async {
@@ -43,6 +46,24 @@ class _LoginScreenState extends State<LoginScreen> {
       rememberMe = credentials['email']!.isNotEmpty &&
           credentials['password']!.isNotEmpty;
     });
+  }
+
+  Future<void> _autoLogin() async {
+    var credentials = await getCredentials();
+    if (credentials['email']!.isNotEmpty &&
+        credentials['password']!.isNotEmpty) {
+      try {
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: credentials['email']!,
+          password: credentials['password']!,
+        );
+        if (context.mounted) {
+          Navigator.pushReplacementNamed(context, '/chatList');
+        }
+      } on FirebaseAuthException catch (e) {
+        print('Error: ${e.message}');
+      }
+    }
   }
 
   @override
@@ -105,13 +126,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     Icons.lock,
                     color: Theme.of(context).colorScheme.secondary,
                   ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
                   filled: true,
                   fillColor: Theme.of(context).colorScheme.background,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(25.0),
                   ),
                 ),
-                obscureText: true,
+                obscureText: !_isPasswordVisible,
                 validator: (value) {
                   if (value == null || value.isEmpty || value.length < 6) {
                     return 'Το σύνθημα πρέπει να αποτελείτε τουλάχιστον από 6 χαρακτήρες';
@@ -188,7 +221,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                 content: Text(
                                   e.message ??
                                       'Το email ή ο κωδικός πρόσβασης είναι λάθος.',
-                                  style: Theme.of(context).textTheme.bodyLarge,
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.secondary,
+                                  ),
                                 )),
                           );
                         }
