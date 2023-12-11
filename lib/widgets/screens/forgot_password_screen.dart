@@ -14,7 +14,32 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   Future<void> resetPassword(String email) async {
-    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ένα email ανάκτησης κωδικού έχει σταλεί στο $email'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'Προέκυψε σφάλμα κατά την αποστολή.';
+      // Customize the error message based on the exception
+      if (e.code == 'user-not-found') {
+        errorMessage = 'Δεν βρέθηκε χρήστης με αυτό το email.';
+      }
+      // Add more error handling as needed
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override

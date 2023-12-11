@@ -1,6 +1,7 @@
 import 'package:chat_app/firebase_options.dart';
 import 'package:chat_app/styles/color_scheme.dart';
 import 'package:chat_app/widgets/screens/chat_list_screen.dart';
+import 'package:chat_app/widgets/screens/intro/splash_screen.dart';
 import 'package:chat_app/widgets/screens/login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -29,7 +30,7 @@ class ChatApp extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.active) {
             if (snapshot.hasData) {
-              return const ChatListScreen(); // User is signed in
+              return const SplashScreen(); // User is signed in
             }
             return const LoginScreen(); // User is not signed in
           }

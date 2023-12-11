@@ -1,4 +1,4 @@
-import 'package:chat_app/widgets/screens/chat_list_screen.dart';
+import 'package:chat_app/widgets/screens/intro/welcome_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
@@ -34,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     Timer(const Duration(seconds: 5), () {
       Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ChatListScreen()));
+          MaterialPageRoute(builder: (_) => const WelcomeScreen()));
     });
   }
 
