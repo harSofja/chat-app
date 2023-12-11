@@ -38,7 +38,7 @@ class ChatListItem extends StatelessWidget {
           backgroundImage: NetworkImage(imageUrl),
         ),
         title: Text(chatPartnerName,
-            style: TextStyle(fontWeight: FontWeight.bold)),
+            style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(lastMessage),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,

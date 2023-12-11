@@ -1,6 +1,8 @@
+import 'package:chat_app/widgets/screens/forgot_password_screen.dart';
 import 'package:chat_app/widgets/screens/sign_up_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,6 +16,34 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool rememberMe = false;
+  final storage = const FlutterSecureStorage();
+
+  Future<void> saveCredentials(String email, String password) async {
+    await storage.write(key: 'email', value: email);
+    await storage.write(key: 'password', value: password);
+  }
+
+  Future<Map<String, String>> getCredentials() async {
+    var email = await storage.read(key: 'email');
+    var password = await storage.read(key: 'password');
+    return {'email': email ?? '', 'password': password ?? ''};
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSavedCredentials();
+  }
+
+  void _checkSavedCredentials() async {
+    var credentials = await getCredentials();
+    setState(() {
+      emailController.text = credentials['email']!;
+      passwordController.text = credentials['password']!;
+      rememberMe = credentials['email']!.isNotEmpty &&
+          credentials['password']!.isNotEmpty;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,17 +120,42 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               ),
               const SizedBox(height: 20),
-              CheckboxListTile(
-                title: Text('Να με θυμάσαι',
-                    style: Theme.of(context).textTheme.bodySmall),
-                value: rememberMe,
-                onChanged: (bool? value) {
-                  setState(() {
-                    rememberMe = value!;
-                  });
-                },
-                controlAffinity: ListTileControlAffinity.leading,
+              Row(
+                children: <Widget>[
+                  Checkbox(
+                    checkColor: Colors.white,
+                    fillColor: MaterialStateProperty.resolveWith(getColor),
+                    value: rememberMe,
+                    shape: const CircleBorder(),
+                    onChanged: (bool? newValue) {
+                      setState(() {
+                        rememberMe = newValue ?? false;
+                      });
+                    },
+                  ),
+                  Text(
+                    'Να με θυμάσαι',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const Spacer(),
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const ForgotPasswordScreen()),
+                      );
+                    },
+                    child: Text(
+                      'Ξεχάσατε το σύνθημα;',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 height: 60,
@@ -170,5 +225,12 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  Color getColor(Set<MaterialState> states) {
+    if (states.contains(MaterialState.selected)) {
+      return const Color(0xFF427D9D); // Color when checkbox is selected
+    }
+    return const Color(0xFF164863); // Default color
   }
 }
