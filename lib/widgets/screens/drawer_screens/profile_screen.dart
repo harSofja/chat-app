@@ -1,3 +1,4 @@
+import 'package:chat_app/widgets/screens/drawer_screens/edit_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -102,7 +103,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             color: Theme.of(context).colorScheme.secondary),
                       ),
                       onTap: () {
-                        // TODO: Navigate to edit profile screen
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (context) => const EditProfileScreen()),
+                        );
                       },
                     ),
                     Divider(

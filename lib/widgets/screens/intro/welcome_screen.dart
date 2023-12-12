@@ -20,11 +20,7 @@ class WelcomeScreen extends StatelessWidget {
                     .bodyLarge
                     ?.copyWith(fontSize: 35),
               ),
-              Image.asset(
-                'assets/images/chat_logo.png',
-                width: 200,
-                height: 200,
-              ), // Your logo here
+
               const SizedBox(height: 50), // Spacing
               SizedBox(
                 width: double.infinity,

@@ -19,7 +19,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ένα email ανάκτησης κωδικού έχει σταλεί στο $email'),
+            content: Text(
+              'Ένα email ανάκτησης κωδικού έχει σταλεί στο $email',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -34,7 +37,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(errorMessage),
+            content: Text(
+              errorMessage,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
             backgroundColor: Colors.red,
           ),
         );

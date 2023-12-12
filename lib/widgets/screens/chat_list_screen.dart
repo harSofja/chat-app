@@ -1,7 +1,8 @@
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lottie/lottie.dart';
 import 'package:chat_app/widgets/components/chat_drawer.dart';
 import 'package:chat_app/widgets/components/chat_list_item.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 
 class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
@@ -10,9 +11,10 @@ class ChatListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         iconTheme: IconThemeData(color: Theme.of(context).iconTheme.color),
         title: Text(
-          'Chats',
+          'Συνομιλίες',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 20),
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
@@ -22,18 +24,33 @@ class ChatListScreen extends StatelessWidget {
         stream: FirebaseFirestore.instance.collection('chats').snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            print("Waiting for data...");
+            debugPrint("Αναμονή για δεδομένα...");
             return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
-            print("Error fetching data: ${snapshot.error}");
-            return const Center(child: Text('Something went wrong'));
+            debugPrint("Σφάλμα κατά τη λήψη δεδομένων: ${snapshot.error}");
+            return const Center(child: Text('Κάτι πήγε στραβά'));
           }
 
-          if (!snapshot.hasData) {
-            print("No data available");
-            return const Center(child: Text('No chats found'));
+          if (snapshot.data == null || snapshot.data!.docs.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Lottie.asset(
+                      'assets/lottie/Animation.json'), // Lottie animation
+                  const SizedBox(height: 20),
+                  const Text('Δεν υπάρχουν ακόμη συνομιλίες!'),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Navigate to start a new chat
+                    },
+                    child: const Text('Ξεκινήστε μια νέα συνομιλία'),
+                  ),
+                ],
+              ),
+            );
           }
 
           return ListView.builder(
@@ -42,16 +59,15 @@ class ChatListScreen extends StatelessWidget {
               var chatData =
                   snapshot.data!.docs[index].data() as Map<String, dynamic>;
               String chatId = snapshot.data!.docs[index].id;
-              Timestamp timestamp = chatData[
-                  'lastMessageTimestamp']; // Use fields from your Firestore documents. Adjust the field names as per your database structure
+              Timestamp timestamp = chatData['lastMessageTimestamp'];
               return Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: ChatListItem(
-                  chatPartnerName: chatData['partnerName'] ?? 'Unknown',
-                  lastMessage: chatData['lastMessage'] ?? 'No message',
+                  chatPartnerName: chatData['partnerName'] ?? 'Άγνωστος',
+                  lastMessage: chatData['lastMessage'] ?? 'Χωρίς μήνυμα',
                   imageUrl:
                       chatData['imageUrl'] ?? 'https://via.placeholder.com/150',
-                  timestamp: timestamp, // Pass the Timestamp directly
+                  timestamp: timestamp,
                   unreadMessages: 0,
                   chatId: chatId,
                 ),
@@ -59,6 +75,16 @@ class ChatListScreen extends StatelessWidget {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // // Navigate to a screen to start a new chat
+          // Navigator.of(context).push(
+          //   MaterialPageRoute(builder: (context) => NewChatScreen()),
+          // );
+        },
+        tooltip: 'Νέα Συνομιλία',
+        child: const Icon(Icons.message), // "New Chat" in Greek
       ),
     );
   }
