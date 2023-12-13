@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -60,7 +61,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             TextField(
               controller: _usernameController,
               decoration: InputDecoration(
-                labelText: 'Username',
+                labelText: 'Όνομα χρήστη',
                 labelStyle: Theme.of(context).textTheme.bodyLarge,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25.0), // Rounded corners
@@ -119,7 +120,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             TextField(
               controller: _bioController,
               decoration: InputDecoration(
-                labelText: 'Bio/Status',
+                labelText: 'Η ατάκα της ημέρας',
                 labelStyle: Theme.of(context).textTheme.bodyLarge,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25.0),
@@ -148,7 +149,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     borderRadius: BorderRadius.circular(25.0),
                   ),
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  () async {
+                    User? user = FirebaseAuth.instance.currentUser;
+                    if (user != null && _usernameController.text.isNotEmpty) {
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(user.uid)
+                          .set({
+                        'username': _usernameController.text,
+                        'bio': _bioController.text,
+                      }, SetOptions(merge: true));
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(
+                            'Profile updated successfully',
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          )),
+                        );
+                      }
+                    }
+                  };
+                },
                 child: Text(
                   'Αποθήκευση αλλαγών',
                   style: Theme.of(context).textTheme.bodyLarge,
