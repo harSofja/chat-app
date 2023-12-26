@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:chat_app/widgets/screens/drawer_screens/edit_profile_screen.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -32,7 +36,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  // ... [signOut and deleteUserAccount methods]
+  Future<void> pickAndUploadImage() async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null && user != null) {
+      String userId = user!.uid;
+      var ref = FirebaseStorage.instance
+          .ref()
+          .child('profile_pictures')
+          .child(userId);
+
+      await ref.putFile(File(image.path));
+      String imageUrl = await ref.getDownloadURL();
+
+      // Save imageUrl to Firestore
+      await FirebaseFirestore.instance.collection('users').doc(userId).set({
+        'imageUrl': imageUrl,
+      }, SetOptions(merge: true));
+
+      // Update the user's photoURL in Firebase Auth (optional)
+      await user!.updatePhotoURL(imageUrl);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,11 +86,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircleAvatar(
-                      backgroundImage: NetworkImage(
-                        user?.photoURL ?? defaultAvatarUrl,
-                      ),
-                      radius: 40,
+                    Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        GestureDetector(
+                          onTap:
+                              pickAndUploadImage, // Call your image picking function
+                          child: CircleAvatar(
+                            backgroundImage: NetworkImage(
+                              user?.photoURL ?? defaultAvatarUrl,
+                            ),
+                            radius: 40,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(
+                              4), // Padding inside the circle
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.add,
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     Text(

@@ -1,3 +1,5 @@
+import 'package:chat_app/widgets/screens/user_selection_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lottie/lottie.dart';
@@ -21,7 +23,11 @@ class ChatListScreen extends StatelessWidget {
       ),
       endDrawer: const ChatDrawer(),
       body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('chats').snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('chats')
+            .where('participants',
+                arrayContains: FirebaseAuth.instance.currentUser?.uid)
+            .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             debugPrint("Αναμονή για δεδομένα...");
@@ -78,13 +84,12 @@ class ChatListScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // // Navigate to a screen to start a new chat
-          // Navigator.of(context).push(
-          //   MaterialPageRoute(builder: (context) => NewChatScreen()),
-          // );
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => UserSearchScreen()),
+          );
         },
-        tooltip: 'Νέα Συνομιλία',
-        child: const Icon(Icons.message), // "New Chat" in Greek
+        tooltip: 'Νέα Συνομιλία', // "New Chat" in Greek
+        child: const Icon(Icons.message),
       ),
     );
   }
