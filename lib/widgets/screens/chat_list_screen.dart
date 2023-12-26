@@ -85,7 +85,8 @@ class ChatListScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => UserSearchScreen()),
+            MaterialPageRoute(
+                builder: (context) => const UserSelectionScreen()),
           );
         },
         tooltip: 'Νέα Συνομιλία', // "New Chat" in Greek

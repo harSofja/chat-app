@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -12,29 +13,56 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
+  bool _isLoading = false;
 
   Future<void> _registerUser() async {
+    if (_isLoading) return; // Prevent multiple submissions
+
+    setState(() => _isLoading = true); // Set loading state to true
+
     try {
       // Create user with email and password
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: emailController.text,
         password: passwordController.text,
       );
+
+      String uid = userCredential.user!.uid;
+
+      // Create a user document in Firestore
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'username': usernameController.text,
+        'email': emailController.text,
+        // add other details if necessary
+      });
+
+      // Clear the text fields after successful registration
+      emailController.clear();
+      passwordController.clear();
+      usernameController.clear();
+      confirmPasswordController.clear();
+
       if (context.mounted) {
         Navigator.pushReplacementNamed(context, '/chatList');
       }
     } on FirebaseAuthException catch (e) {
-      // Handle errors (e.g., weak password, email already in use)
-      print(e.message);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              backgroundColor: Theme.of(context).colorScheme.surface,
-              content: Text(e.message ?? 'An error occurred')),
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            content: Text(e.message ?? 'Προέκυψε ένα σφάλμα'),
+          ),
         );
-      } // For debugging purposes
+      }
+    } finally {
+      // Set loading state to false after registration attempt
+      if (context.mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -60,6 +88,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 'assets/images/chat_logo.png',
                 width: 100.0,
                 height: 50.0,
+              ),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: usernameController,
+                decoration: InputDecoration(
+                  labelText: 'Όνομα χρήστη',
+                  labelStyle: Theme.of(context).textTheme.bodyLarge,
+                  prefixIcon: Icon(
+                    Icons.person,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.background,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(25.0),
+                      borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.secondary,
+                          width: 2)),
+                ),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Εισάγεται ένα όνομα χρήστη';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 20),
               TextFormField(
@@ -91,7 +145,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               TextFormField(
                 controller: passwordController,
                 decoration: InputDecoration(
-                  labelText: 'Password',
+                  labelText: 'Κωδικός',
                   labelStyle: Theme.of(context).textTheme.bodyLarge,
                   prefixIcon: Icon(
                     Icons.lock,
@@ -115,7 +169,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               TextFormField(
                 controller: confirmPasswordController,
                 decoration: InputDecoration(
-                  labelText: 'Επιβεβαίωση συνθηματικού',
+                  labelText: 'Επιβεβαίωση κωδικού',
                   labelStyle: Theme.of(context).textTheme.bodyLarge,
                   prefixIcon: Icon(
                     Icons.check_box,
@@ -150,11 +204,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       borderRadius: BorderRadius.circular(25.0),
                     ),
                   ),
-                  child: Text(
-                    'Δημιουργία λογαριασμού',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.background),
-                  ),
+                  child: _isLoading
+                      ? CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Theme.of(context).colorScheme.background,
+                          ),
+                        )
+                      : Text(
+                          'Δημιουργία λογαριασμού',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(
+                                  color:
+                                      Theme.of(context).colorScheme.background),
+                        ),
                 ),
               ),
             ],

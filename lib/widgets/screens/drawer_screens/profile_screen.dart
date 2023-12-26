@@ -225,8 +225,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void deleteUserAccount() async {
-    // Confirmation dialog before deleting account
-    bool shouldDelete = await showDialog(
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    // First, prompt for the user's password
+    String? password = await _promptForPassword(context);
+    if (password == null || password.isEmpty) return;
+
+    // Then, show the confirmation dialog
+    bool shouldDelete = await _showDeleteConfirmationDialog(context);
+    if (!shouldDelete) return;
+
+    // Perform the deletion in a separate method
+    _performUserDeletion(user, password);
+  }
+
+  Future<bool> _showDeleteConfirmationDialog(BuildContext context) async {
+    return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Κατάργηση λογαριασμού'),
@@ -238,26 +253,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onPressed: () => Navigator.of(context).pop(false),
               ),
               TextButton(
-                child: const Text('Διαγραφή'),
+                child: const Text('Οριστική διαγραφή'),
                 onPressed: () => Navigator.of(context).pop(true),
               ),
             ],
           ),
         ) ??
         false;
+  }
 
-    if (shouldDelete) {
-      // Delete user account logic
+  Future<void> _performUserDeletion(User user, String password) async {
+    try {
+      // Re-authenticate the user
+      AuthCredential credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+      // Delete user's document from Firestore
       await FirebaseFirestore.instance
           .collection('users')
-          .doc(user?.uid)
+          .doc(user.uid)
           .delete();
-      await user?.delete();
+
+      // Delete user from Firebase Authentication
+      await user.delete();
+
+      // Navigate to login after deletion
       if (context.mounted) {
         Navigator.of(context).pushReplacementNamed('/login');
       }
-      // Navigate to login after deletion
+    } catch (e) {
+      // Handle exceptions (e.g., show error message)
+      print("Error deleting user: $e");
     }
+  }
+
+// Helper function to prompt for password
+  Future<String?> _promptForPassword(BuildContext context) async {
+    TextEditingController passwordController = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+            'Για λόγους ασφαλείας θα πρέπει να εισάγεται τον κωδικό σας'),
+        content: TextField(
+          controller: passwordController,
+          obscureText: true,
+          decoration: const InputDecoration(hintText: 'Κωδικός'),
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Ακύρωση'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          TextButton(
+            child: const Text('Υποβολή'),
+            onPressed: () => Navigator.of(context).pop(passwordController.text),
+          ),
+        ],
+      ),
+    );
   }
 
   ButtonStyle buttonStyle(IconData icon) {
