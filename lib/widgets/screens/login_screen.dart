@@ -51,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         labelStyle: Theme.of(context).textTheme.bodyLarge,
                         prefixIcon: Icon(
                           Icons.email,
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ), // Email icon
                         filled: true,
                         fillColor: Theme.of(context).colorScheme.background,
@@ -79,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         labelStyle: Theme.of(context).textTheme.bodyLarge,
                         prefixIcon: Icon(
                           Icons.lock,
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                         suffixIcon: IconButton(
                           icon: Icon(

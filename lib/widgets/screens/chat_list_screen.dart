@@ -44,15 +44,14 @@ class ChatListScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Lottie.asset(
-                      'assets/lottie/Animation.json'), // Lottie animation
+                  SizedBox(
+                    width: 350,
+                    child: Lottie.asset('assets/lotties/not_found.json'),
+                  ), // Lottie animation
                   const SizedBox(height: 20),
-                  const Text('Δεν υπάρχουν ακόμη συνομιλίες!'),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Navigate to start a new chat
-                    },
-                    child: const Text('Ξεκινήστε μια νέα συνομιλία'),
+                  Text(
+                    'Δεν υπάρχουν ακόμη συνομιλίες!',
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ],
               ),
