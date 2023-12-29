@@ -11,6 +11,11 @@ class ChatListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final currentUserId = currentUser?.uid ?? '';
+    // final currentUserName = currentUser?.displayName ??
+    ''; // Assuming the displayName is the username
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -25,8 +30,7 @@ class ChatListScreen extends StatelessWidget {
       body: StreamBuilder(
         stream: FirebaseFirestore.instance
             .collection('chats')
-            .where('participants',
-                arrayContains: FirebaseAuth.instance.currentUser?.uid)
+            .where('participants', arrayContains: currentUserId)
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -64,18 +68,32 @@ class ChatListScreen extends StatelessWidget {
               var chatData =
                   snapshot.data!.docs[index].data() as Map<String, dynamic>;
               String chatId = snapshot.data!.docs[index].id;
-              Timestamp timestamp = chatData['lastMessageTimestamp'];
-              return Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: ChatListItem(
-                  chatPartnerName: chatData['partnerName'] ?? 'Άγνωστος',
-                  lastMessage: chatData['lastMessage'] ?? 'Χωρίς μήνυμα',
-                  imageUrl:
-                      chatData['imageUrl'] ?? 'https://via.placeholder.com/150',
-                  timestamp: timestamp,
-                  unreadMessages: 0,
-                  chatId: chatId,
-                ),
+              Timestamp timestamp =
+                  chatData['lastMessageTimestamp'] as Timestamp? ??
+                      Timestamp.now();
+
+              return FutureBuilder<String>(
+                future: _getChatPartnerData(chatData, currentUserId),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const CircularProgressIndicator();
+                  }
+                  String chatPartnerName =
+                      snapshot.data ?? 'Unknown'; // Use snapshot.data directly
+
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: ChatListItem(
+                      chatPartnerName: chatPartnerName,
+                      lastMessage: chatData['lastMessage'] ?? 'Χωρίς μήνυμα',
+                      imageUrl: chatData['imageUrl'] ??
+                          'https://via.placeholder.com/150',
+                      timestamp: timestamp,
+                      unreadMessages: 0,
+                      chatId: chatId,
+                    ),
+                  );
+                },
               );
             },
           );
@@ -92,5 +110,33 @@ class ChatListScreen extends StatelessWidget {
         child: const Icon(Icons.message),
       ),
     );
+  }
+
+  Future<String> _getChatPartnerData(
+      Map<String, dynamic> chatData, String currentUserId) async {
+    List<String> participantIds = List<String>.from(chatData['participants']);
+    participantIds.remove(currentUserId); // Remove current user's id
+    String chatPartnerId =
+        participantIds.first; // Assuming chats are always between two users
+
+    // If participantNames exists and contains the other user's name, use it
+    if (chatData.containsKey('participantNames') &&
+        chatData['participantNames'] is List) {
+      List<String> participantNames =
+          List<String>.from(chatData['participantNames']);
+      return participantNames.firstWhere((name) => name != currentUserId,
+          orElse: () => 'Unknown');
+    }
+
+    // Otherwise, fetch from the 'users' collection
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(chatPartnerId)
+        .get();
+
+    // Ensure that userDoc.data() is cast to Map<String, dynamic>
+    Map<String, dynamic> userData =
+        userDoc.data() as Map<String, dynamic>? ?? {};
+    return userData['username'] as String? ?? 'Unknown';
   }
 }

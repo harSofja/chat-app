@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 
 class ChatWindowScreen extends StatefulWidget {
   final String chatId; // Assume you have a unique identifier for each chat
@@ -59,7 +60,6 @@ class _ChatWindowScreenState extends State<ChatWindowScreen> {
   }
 
   Widget _buildMessageList(String chatId) {
-    debugPrint("Fetching messages for chat ID: $chatId");
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('chats/$chatId/messages')
@@ -67,20 +67,20 @@ class _ChatWindowScreenState extends State<ChatWindowScreen> {
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
+          // Log the error for debugging
           debugPrint("Error fetching messages: ${snapshot.error}");
-          return const Center(child: Text('Error loading messages.'));
+          return Center(child: Text('Error: ${snapshot.error.toString()}'));
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(child: Text('No messages yet.'));
+        var messages = snapshot.data?.docs ?? [];
+        if (messages.isEmpty) {
+          return _buildWelcomeMessage(context);
         }
-
-        var messages = snapshot.data!.docs;
-        debugPrint("Fetched messages: ${messages.length}");
+        _markMessagesAsRead(chatId);
         return ListView.builder(
           reverse: true,
           itemCount: messages.length,
@@ -91,6 +91,38 @@ class _ChatWindowScreenState extends State<ChatWindowScreen> {
         );
       },
     );
+  }
+
+  Widget _buildWelcomeMessage(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Lottie.asset('assets/lotties/welcome_chat.json',
+              width: 200, height: 200),
+          const SizedBox(height: 20),
+          Text(
+            'Ξεκινήστε μια νέα συζήτηση με τον/την ${widget.chatPartnerName}!',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _markMessagesAsRead(String chatId) async {
+    var currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return;
+
+    var querySnapshot = await FirebaseFirestore.instance
+        .collection('chats/$chatId/messages')
+        .where('senderId', isNotEqualTo: currentUser.uid)
+        .where('read', isEqualTo: false)
+        .get();
+
+    for (var doc in querySnapshot.docs) {
+      doc.reference.update({'read': true});
+    }
   }
 
   Widget _buildMessageInputField(String chatId, BuildContext context) {
@@ -143,8 +175,7 @@ class _ChatWindowScreenState extends State<ChatWindowScreen> {
       Map<String, dynamic> messageData, BuildContext context) {
     String senderId = messageData['senderId'] ?? '';
     if (senderId.isEmpty) {
-      debugPrint("Invalid senderId encountered");
-      return const SizedBox.shrink(); // or some placeholder widget
+      return const SizedBox.shrink(); // Placeholder for invalid senderId
     }
     bool isSentByMe = senderId == getCurrentUserId();
 
@@ -152,61 +183,78 @@ class _ChatWindowScreenState extends State<ChatWindowScreen> {
       future:
           FirebaseFirestore.instance.collection('users').doc(senderId).get(),
       builder: (context, snapshot) {
-        String imageUrl;
+        String imageUrl = defaultAvatarUrl; // Default URL
         if (snapshot.hasData && snapshot.data!.data() is Map<String, dynamic>) {
           var userData = snapshot.data!.data() as Map<String, dynamic>;
-          imageUrl = userData['imageUrl'] ??
-              defaultAvatarUrl; // Use the default URL if no image is set
-        } else {
-          imageUrl =
-              defaultAvatarUrl; // Use the default URL if snapshot has no data
+          imageUrl = userData['imageUrl'] ?? defaultAvatarUrl;
         }
 
-        return Row(
-          mainAxisAlignment:
-              isSentByMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-          children: [
-            if (!isSentByMe) // Show avatar for received messages
-              CircleAvatar(
-                backgroundImage: NetworkImage(imageUrl),
-                radius: 16,
-              ),
-            Expanded(
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                decoration: BoxDecoration(
-                  color: isSentByMe
-                      ? Theme.of(context).colorScheme.secondary
-                      : Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      messageData['text'] ?? 'Missing text',
-                      style: TextStyle(
-                          color: isSentByMe ? Colors.white : Colors.black),
-                    ),
+        return Align(
+          alignment: isSentByMe ? Alignment.centerRight : Alignment.centerLeft,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+            margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+            decoration: BoxDecoration(
+              color: isSentByMe
+                  ? Theme.of(context).colorScheme.secondary
+                  : Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: IntrinsicWidth(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (!isSentByMe) // Avatar for received messages
                     Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        messageData['timestamp'] != null
-                            ? DateFormat('hh:mm a').format(
-                                (messageData['timestamp'] as Timestamp)
-                                    .toDate())
-                            : 'Unknown time',
-                        style: const TextStyle(
-                            fontSize: 10, color: Colors.white70),
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: CircleAvatar(
+                        backgroundImage: NetworkImage(imageUrl),
+                        radius: 13,
                       ),
                     ),
-                  ],
-                ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          messageData['text'] ?? 'Missing text',
+                          style: TextStyle(
+                              color: isSentByMe ? Colors.white : Colors.black),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            messageData['timestamp'] != null
+                                ? DateFormat('hh:mm a').format(
+                                    (messageData['timestamp'] as Timestamp)
+                                        .toDate())
+                                : 'Unknown time',
+                            style: const TextStyle(
+                                fontSize: 10,
+                                color: Color.fromARGB(248, 247, 252, 74)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (isSentByMe) // Read status for sent messages
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4.0),
+                      child: Icon(
+                        messageData['read'] ?? false
+                            ? Icons.done_all
+                            : Icons.done,
+                        size: 16,
+                        color: messageData['read'] ?? false
+                            ? Colors.blue
+                            : Colors.grey,
+                      ),
+                    ),
+                ],
               ),
             ),
-          ],
+          ),
         );
       },
     );
@@ -216,25 +264,27 @@ class _ChatWindowScreenState extends State<ChatWindowScreen> {
     if (text.trim().isEmpty) return;
 
     String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    // Check if the currentUserId (senderId) is not empty
     if (currentUserId.isEmpty) {
       debugPrint("Error: No current user ID available for sending message.");
-      return; // Exit the function if no valid senderId is available
+      return;
     }
 
-    debugPrint("Current User ID: $currentUserId");
-    debugPrint("Sending message: $text");
-    await FirebaseFirestore.instance.collection('chats/$chatId/messages').add({
-      'text': text,
-      'senderId': currentUserId, // Adding the senderId here
-      'timestamp': FieldValue.serverTimestamp(),
-    });
-    debugPrint("Message sent to chat ID: $chatId");
+    try {
+      await FirebaseFirestore.instance
+          .collection('chats/$chatId/messages')
+          .add({
+        'text': text,
+        'senderId': currentUserId,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
 
-    // Also update the lastMessage and lastMessageTimestamp in the chat document
-    await FirebaseFirestore.instance.collection('chats').doc(chatId).update({
-      'lastMessage': text,
-      'lastMessageTimestamp': FieldValue.serverTimestamp(),
-    });
+      await FirebaseFirestore.instance.collection('chats').doc(chatId).update({
+        'lastMessage': text,
+        'lastMessageTimestamp': FieldValue.serverTimestamp(),
+      });
+      debugPrint("Message sent to chat ID: $chatId");
+    } catch (e) {
+      debugPrint("Error sending message: $e");
+    }
   }
 }

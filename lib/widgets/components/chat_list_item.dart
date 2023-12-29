@@ -24,22 +24,24 @@ class ChatListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String formattedTime = _formatTimestamp(timestamp);
+    String displayLastMessage =
+        lastMessage.isEmpty ? 'Πείτε ένα γειά!' : lastMessage;
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15.0), // Rounded corners
       ),
       elevation: 3, // Shadow effect
-      margin: const EdgeInsets.symmetric(
-          horizontal: 10, vertical: 5), // Spacing around the card
+      margin:
+          const EdgeInsets.symmetric(horizontal: 10), // Spacing around the card
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16, vertical: 10), // Padding inside the ListTile
+            horizontal: 16, vertical: 5), // Padding inside the ListTile
         leading: CircleAvatar(
           backgroundImage: NetworkImage(imageUrl),
         ),
         title: Text(chatPartnerName,
             style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(lastMessage),
+        subtitle: Text(displayLastMessage),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[

@@ -62,29 +62,89 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class UserSelectionScreen extends StatelessWidget {
+class UserSelectionScreen extends StatefulWidget {
   const UserSelectionScreen({super.key});
+
+  @override
+  State<UserSelectionScreen> createState() => _UserSelectionScreenState();
+}
+
+class _UserSelectionScreenState extends State<UserSelectionScreen> {
+  late Future<List<Map<String, dynamic>>> _usersFuture;
+  @override
+  void initState() {
+    super.initState();
+    _usersFuture = _fetchUsers();
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchUsers() async {
+    var querySnapshot =
+        await FirebaseFirestore.instance.collection('users').get();
+    return querySnapshot.docs
+        .map((doc) => {'id': doc.id, 'username': doc['username']})
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Select a User')),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('users').snapshots(),
+      appBar: AppBar(
+        title: const Text(
+          'Αναζήτηση',
+        ),
+      ),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _usersFuture,
         builder: (context, snapshot) {
-          if (!snapshot.hasData) return CircularProgressIndicator();
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircularProgressIndicator();
+          }
 
-          return ListView.builder(
-            itemCount: snapshot.data!.docs.length,
-            itemBuilder: (context, index) {
-              var userDoc = snapshot.data!.docs[index];
-              var userData = userDoc.data() as Map<String, dynamic>;
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Text('Δεν βρέθηκαν χρήστες με αυτό το όνομα.');
+          }
 
-              return ListTile(
-                title: Text(userData['username'] ?? 'No Name'),
-                onTap: () => _createOrGetChat(context, userDoc.id),
-              );
-            },
+          var users = snapshot.data!;
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(25.0),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  width: 2,
+                ),
+              ),
+              child: Autocomplete<Map<String, dynamic>>(
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  if (textEditingValue.text.isEmpty) {
+                    return const Iterable<Map<String, dynamic>>.empty();
+                  }
+                  return users.where((user) {
+                    return user['username']
+                        .toLowerCase()
+                        .startsWith(textEditingValue.text.toLowerCase());
+                  });
+                },
+                displayStringForOption: (Map<String, dynamic> option) =>
+                    option['username'],
+                fieldViewBuilder: (context, textEditingController, focusNode,
+                    onFieldSubmitted) {
+                  return TextFormField(
+                    controller: textEditingController,
+                    focusNode: focusNode,
+                    decoration: const InputDecoration(
+                      hintText: 'Αναζήτησε χρήστες',
+                      contentPadding: EdgeInsets.symmetric(horizontal: 20),
+                      border: InputBorder.none,
+                    ),
+                  );
+                },
+                onSelected: (Map<String, dynamic> selection) {
+                  _createOrGetChat(context, selection['id']);
+                },
+              ),
+            ),
           );
         },
       ),
@@ -93,20 +153,40 @@ class UserSelectionScreen extends StatelessWidget {
 
   Future<void> _createOrGetChat(
       BuildContext context, String otherUserId) async {
+    debugPrint("Called _createOrGetChat with otherUserId: $otherUserId");
+
     var currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null || currentUser.uid == otherUserId) return;
+    if (currentUser == null) {
+      debugPrint("Current user is null");
+      return;
+    }
 
-    String chatId = '';
-    bool chatExists = false;
-    String chatPartnerName = '';
+    debugPrint("Current User ID: ${currentUser.uid}");
+    if (currentUser.uid == otherUserId) {
+      debugPrint("Cannot create chat with self");
+      return;
+    }
 
-    var otherUserDoc = await FirebaseFirestore.instance
+    // Fetch current user's username
+    DocumentSnapshot currentUserDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUser.uid)
+        .get();
+    Map<String, dynamic> currentUserData =
+        currentUserDoc.data() as Map<String, dynamic>;
+    String currentUserName = currentUserData['username'] ?? 'Unknown';
+
+    // Fetch chat partner's name
+    DocumentSnapshot otherUserDoc = await FirebaseFirestore.instance
         .collection('users')
         .doc(otherUserId)
         .get();
-    if (otherUserDoc.exists) {
-      chatPartnerName = otherUserDoc.data()?['username'] ?? 'Unknown';
-    }
+    Map<String, dynamic> otherUserData =
+        otherUserDoc.data() as Map<String, dynamic>;
+    String chatPartnerName = otherUserData['username'] ?? 'Unknown';
+
+    String chatId = '';
+    bool chatExists = false;
 
     var chatQuery = await FirebaseFirestore.instance
         .collection('chats')
@@ -118,20 +198,27 @@ class UserSelectionScreen extends StatelessWidget {
       if (participants.contains(otherUserId)) {
         chatId = doc.id;
         chatExists = true;
+        debugPrint("Found existing chat: $chatId");
         break;
       }
     }
 
     if (!chatExists) {
+      debugPrint("Creating new chat");
       var newChatDoc =
           await FirebaseFirestore.instance.collection('chats').add({
         'participants': [currentUser.uid, otherUserId],
+        'participantNames': [
+          currentUserName,
+          chatPartnerName
+        ], // Store both names
         'lastMessage': '',
         'lastMessageTimestamp': FieldValue.serverTimestamp(),
       });
       chatId = newChatDoc.id;
     }
 
+    debugPrint("Navigating to ChatWindowScreen with chatId: $chatId");
     if (context.mounted) {
       Navigator.of(context).push(
         MaterialPageRoute(
@@ -141,6 +228,8 @@ class UserSelectionScreen extends StatelessWidget {
           ),
         ),
       );
+    } else {
+      debugPrint("Context not mounted, cannot navigate");
     }
   }
 }
