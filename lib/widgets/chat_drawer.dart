@@ -1,3 +1,4 @@
+import 'package:chat_app/screens/about_screen.dart';
 import 'package:chat_app/screens/profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -8,10 +9,8 @@ class ChatDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    final userEmail =
-        user?.email ?? 'No Email'; // Default text if the email is null
-// You can also retrieve the user's photo URL if you have set it up
-    final userPhotoUrl = user?.photoURL ?? 'default_photo_url';
+    final userEmail = user?.email ?? 'No Email';
+    final userPhotoUrl = user?.photoURL ?? 'https://i.pravatar.cc/300';
 
     return SizedBox(
       height: 780,
@@ -63,28 +62,18 @@ class ChatDrawer extends StatelessWidget {
               ),
               ListTile(
                 leading: Icon(
-                  Icons.edit_document,
+                  Icons.info,
                   color: Theme.of(context).iconTheme.color,
                 ),
                 title: Text(
-                  'Οι σημειώσεις μου',
+                  'Σχετικά με την εφαρμογή',
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 onTap: () {
-                  // Handle the tap
-                },
-              ),
-              ListTile(
-                leading: Icon(
-                  Icons.settings_rounded,
-                  color: Theme.of(context).iconTheme.color,
-                ),
-                title: Text(
-                  'Ρυθμίσεις',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                onTap: () {
-                  // Handle the tap
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (context) => const AboutScreen()),
+                  );
                 },
               ),
             ],

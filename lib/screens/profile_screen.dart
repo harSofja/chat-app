@@ -17,8 +17,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   User? user = FirebaseAuth.instance.currentUser;
   String username = '';
-  final String defaultAvatarUrl =
-      'https://www.flaticon.com/free-icon/user_1177568?term=avatar&page=1&position=45&origin=tag&related_id=1177568';
+  final String defaultAvatarUrl = 'https://i.pravatar.cc/300';
 
   @override
   void initState() {
