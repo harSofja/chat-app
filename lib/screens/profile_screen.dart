@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:chat_app/widgets/screens/drawer_screens/edit_profile_screen.dart';
+import 'package:chat_app/screens/edit_profile_screen.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -115,12 +115,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Email: ${user?.email ?? 'N/A'}',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Username: $username',
+                      username,
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ],

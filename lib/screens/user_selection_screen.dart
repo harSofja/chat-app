@@ -57,7 +57,7 @@
 //   }
 // }
 
-import 'package:chat_app/widgets/screens/chat_window_screen.dart';
+import 'package:chat_app/screens/chat_window_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';

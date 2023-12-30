@@ -12,7 +12,6 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _bioController = TextEditingController();
 
   @override
   void initState() {
@@ -20,13 +19,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _loadUserData();
   }
 
-  void _loadUserData() {
+  void _loadUserData() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
+      var userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      var userData = userDoc.data();
+
       // Set the email in the email controller
       _emailController.text = user.email ?? '';
-      // If you have other user data (like username, bio) stored elsewhere,
-      // you can load and set them here as well.
+      // Set username and bio if they exist
+      _usernameController.text = userData?['username'] ?? '';
     }
   }
 
@@ -34,7 +39,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void dispose() {
     _usernameController.dispose();
     _emailController.dispose();
-    _bioController.dispose();
+
     super.dispose();
   }
 
@@ -46,7 +51,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         backgroundColor: Theme.of(context).colorScheme.surface,
         iconTheme: IconThemeData(color: Theme.of(context).iconTheme.color),
         title: Text(
-          'Edit Profile',
+          'Επεξεργασία προφίλ',
           style: TextStyle(color: Theme.of(context).colorScheme.secondary),
         ),
       ),
@@ -116,27 +121,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 15), // Bio/Status TextField
-            TextField(
-              controller: _bioController,
-              decoration: InputDecoration(
-                labelText: 'Η ατάκα της ημέρας',
-                labelStyle: Theme.of(context).textTheme.bodyLarge,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25.0),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.secondary),
-                  borderRadius: BorderRadius.circular(25.0),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide(color: Theme.of(context).colorScheme.primary),
-                  borderRadius: BorderRadius.circular(25.0),
-                ),
-              ),
-            ),
+            // Bio/Status TextField
+
             const SizedBox(height: 15),
             // Save Button
             SizedBox(
@@ -149,29 +135,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     borderRadius: BorderRadius.circular(25.0),
                   ),
                 ),
-                onPressed: () {
-                  () async {
-                    User? user = FirebaseAuth.instance.currentUser;
-                    if (user != null && _usernameController.text.isNotEmpty) {
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(user.uid)
-                          .set({
-                        'username': _usernameController.text,
-                        'bio': _bioController.text,
-                      }, SetOptions(merge: true));
+                onPressed: () async {
+                  User? user = FirebaseAuth.instance.currentUser;
+                  if (user != null && _usernameController.text.isNotEmpty) {
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(user.uid)
+                        .set({
+                      'username': _usernameController.text,
+                    }, SetOptions(merge: true));
 
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(
-                            'Profile updated successfully',
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          )),
-                        );
-                      }
+                    if (context.mounted) {
+                      setState(() {
+                        // This will cause the widget to rebuild with updated values.
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                          'Το προφίλ σας ενημερώθηκε επιτυχώς',
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        )),
+                      );
                     }
-                  };
+                  }
                 },
                 child: Text(
                   'Αποθήκευση αλλαγών',

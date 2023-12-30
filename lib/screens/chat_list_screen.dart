@@ -1,10 +1,10 @@
-import 'package:chat_app/widgets/screens/user_selection_screen.dart';
+import 'package:chat_app/screens/user_selection_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lottie/lottie.dart';
-import 'package:chat_app/widgets/components/chat_drawer.dart';
-import 'package:chat_app/widgets/components/chat_list_item.dart';
+import 'package:chat_app/widgets/chat_drawer.dart';
+import 'package:chat_app/widgets/chat_list_item.dart';
 
 class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});

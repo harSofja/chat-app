@@ -1,4 +1,4 @@
-import 'package:chat_app/widgets/screens/sign_up_screen.dart';
+import 'package:chat_app/screens/sign_up_screen.dart';
 import 'package:flutter/material.dart';
 
 class WelcomeScreen extends StatelessWidget {
