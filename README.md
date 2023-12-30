@@ -39,14 +39,6 @@ This Basic Chat App is a Flutter-based mobile application that allows users to i
 
 - Random avatar images generated from [Pravatar](https://i.pravatar.cc/300).
 
-## Firebase Configuration
-
-The app uses Firebase as its backend. To set up and run the project, you need to configure Firebase for your environment. This involves:
-- Creating a Firebase project.
-- Configuring Firebase Authentication.
-- Setting up Cloud Firestore and Firebase Storage.
-- Adding your `google-services.json` (Android) and `GoogleService-Info.plist` (iOS) to the project.
-
 ## Getting Started
 
 To run the project:
@@ -54,6 +46,7 @@ To run the project:
 2. Install dependencies with `flutter pub get`.
 3. Configure Firebase as mentioned above.
 4. Run the app using `flutter run`.
+Note: The Firebase configuration files are included in the project for ease of evaluation. You can run the project directly without setting up Firebase.
 
 ## Repository
 
